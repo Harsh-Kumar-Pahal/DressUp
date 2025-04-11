@@ -1,0 +1,989 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Doraemon's Camera</title>
+    <style>
+        /* Reset and basic setup */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Arial', sans-serif;
+            background: #000;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            color: #fff;
+        }
+        
+        /* Main camera body */
+        .camera-body {
+            position: relative;
+            max-width: 800px;
+            width: 95%;
+            background: linear-gradient(145deg, #222, #111);
+            border-radius: 15px;
+            padding: 15px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.8), 
+                        inset 0 1px 1px rgba(255, 255, 255, 0.1), 
+                        inset 0 -1px 1px rgba(0, 0, 0, 0.5);
+            overflow: hidden;
+        }
+        
+        /* Camera details and embellishments */
+        .camera-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding: 5px 15px;
+            background: #0a0a0a;
+            border-radius: 10px;
+            height: 40px;
+        }
+        
+        .branding {
+            display: flex;
+            align-items: center;
+        }
+        
+        .camera-logo {
+            color: #fff;
+            font-size: 14px;
+            font-weight: bold;
+            margin-right: 10px;
+            letter-spacing: 1px;
+        }
+        
+        .version-number {
+            color: #4CAF50;
+            font-size: 10px;
+            background: #0a0a0a;
+            padding: 2px 5px;
+            border-radius: 3px;
+            border: 1px solid #4CAF50;
+        }
+        
+        .flash-indicator {
+            width: 8px;
+            height: 8px;
+            background: #f44336;
+            border-radius: 50%;
+            box-shadow: 0 0 5px rgba(244, 67, 54, 0.7);
+            margin-right: 5px;
+        }
+        
+        .indicators {
+            display: flex;
+            align-items: center;
+        }
+        
+        .battery-level {
+            width: 30px;
+            height: 12px;
+            background: #333;
+            border-radius: 2px;
+            margin-left: 10px;
+            position: relative;
+            border: 1px solid #555;
+        }
+        
+        .battery-level::before {
+            content: '';
+            position: absolute;
+            left: 2px;
+            top: 2px;
+            width: 70%;
+            height: calc(100% - 4px);
+            background: #4CAF50;
+            border-radius: 1px;
+        }
+        
+        .battery-level::after {
+            content: '';
+            position: absolute;
+            right: -4px;
+            top: 3px;
+            width: 3px;
+            height: 6px;
+            background: #555;
+            border-radius: 0 2px 2px 0;
+        }
+        
+        /* Camera lenses and decorations */
+        .lens-housing {
+            position: absolute;
+            top: -40px;
+            left: 50px;
+            width: 120px;
+            height: 120px;
+            background: linear-gradient(145deg, #333, #222);
+            border-radius: 50%;
+            border: 6px solid #444;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.8);
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .lens {
+            width: 90%;
+            height: 90%;
+            background: radial-gradient(circle, 
+                rgba(0, 0, 0, 0.9) 10%, 
+                rgba(30, 30, 30, 0.8) 40%,
+                rgba(50, 50, 50, 0.7) 60%,
+                rgba(80, 80, 80, 0.6) 80%);
+            border-radius: 50%;
+            border: 4px solid #222;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .lens::before {
+            content: '';
+            position: absolute;
+            top: 20%;
+            left: 20%;
+            width: 15%;
+            height: 15%;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+        }
+        
+        .lens::after {
+            content: '';
+            position: absolute;
+            top: 35%;
+            left: 35%;
+            width: 30%;
+            height: 30%;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+        }
+        
+        .viewfinder {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 4/3;
+            background: #000;
+            border-radius: 5px;
+            overflow: hidden;
+            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.9);
+            border: 3px solid #333;
+            margin-top: 40px;
+        }
+        
+        #liveFeed {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .viewfinder-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .viewfinder-overlay::before,
+        .viewfinder-overlay::after {
+            content: "";
+            position: absolute;
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .viewfinder-overlay::before {
+            top: 50%;
+            left: 10px;
+            right: 10px;
+            height: 1px;
+        }
+        
+        .viewfinder-overlay::after {
+            left: 50%;
+            top: 10px;
+            bottom: 10px;
+            width: 1px;
+        }
+        
+        .viewfinder-corners::before,
+        .viewfinder-corners::after,
+        .viewfinder-corners span::before,
+        .viewfinder-corners span::after {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border-color: rgba(255, 255, 255, 0.3);
+            border-style: solid;
+            border-width: 0;
+        }
+        
+        .viewfinder-corners::before {
+            top: 10px;
+            left: 10px;
+            border-top-width: 1px;
+            border-left-width: 1px;
+        }
+        
+        .viewfinder-corners::after {
+            top: 10px;
+            right: 10px;
+            border-top-width: 1px;
+            border-right-width: 1px;
+        }
+        
+        .viewfinder-corners span::before {
+            bottom: 10px;
+            left: 10px;
+            border-bottom-width: 1px;
+            border-left-width: 1px;
+        }
+        
+        .viewfinder-corners span::after {
+            bottom: 10px;
+            right: 10px;
+            border-bottom-width: 1px;
+            border-right-width: 1px;
+        }
+        
+        /* Camera status display */
+        .status-display {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            background: #0f0f0f;
+            padding: 5px;
+            border-radius: 5px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            border: 1px solid #333;
+            width: 80px;
+        }
+        
+        .exposure-dial {
+            width: 60px;
+            height: 60px;
+            background: radial-gradient(circle, #333, #222);
+            border-radius: 50%;
+            border: 3px solid #444;
+            margin-bottom: 5px;
+            position: relative;
+        }
+        
+        .exposure-dial::after {
+            content: '';
+            position: absolute;
+            top: 8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 4px;
+            height: 12px;
+            background: #4CAF50;
+            border-radius: 2px;
+        }
+        
+        .mode-display {
+            font-size: 10px;
+            color: #4CAF50;
+            width: 100%;
+            text-align: center;
+            background: #000;
+            border-radius: 3px;
+            padding: 2px 0;
+            border: 1px solid #333;
+        }
+        
+        /* Control panel */
+        .control-panel {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            background: #1a1a1a;
+            border-top: 2px solid #333;
+            border-bottom: 2px solid #000;
+            padding: 15px 10px;
+            margin-top: 15px;
+            border-radius: 5px;
+        }
+        
+        .control-left,
+        .control-right {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .control-button {
+            background: linear-gradient(145deg, #333, #222);
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            padding: 8px 12px;
+            font-size: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5),
+                         inset 0 1px 1px rgba(255, 255, 255, 0.1);
+            transition: all 0.2s;
+            width: 70px;
+        }
+        
+        .control-button:hover {
+            background: linear-gradient(145deg, #3a3a3a, #2a2a2a);
+        }
+        
+        .control-button:active {
+            background: #222;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.5),
+                         inset 0 1px 1px rgba(0, 0, 0, 0.2);
+            transform: translateY(1px);
+        }
+        
+        #cameraSelect {
+            background: #222;
+            color: #fff;
+            border: 1px solid #444;
+            border-radius: 4px;
+            padding: 5px;
+            font-size: 12px;
+            cursor: pointer;
+            width: 70px;
+            text-align: center;
+        }
+        
+        /* Shutter button */
+        .shutter-container {
+            position: relative;
+        }
+        
+        .shutter-button {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: radial-gradient(circle, #ff5252, #d32f2f);
+            border: 4px solid #b71c1c;
+            cursor: pointer;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5),
+                        inset 0 2px 3px rgba(255, 255, 255, 0.3);
+            transition: all 0.1s;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .shutter-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 10px rgba(0, 0, 0, 0.5),
+                        inset 0 2px 3px rgba(255, 255, 255, 0.3);
+        }
+        
+        .shutter-button:active {
+            transform: scale(0.95);
+            background: radial-gradient(circle, #d32f2f, #b71c1c);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5),
+                        inset 0 1px 2px rgba(0, 0, 0, 0.3);
+        }
+        
+        .shutter-ring {
+            position: absolute;
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+            border: 2px solid #555;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 1;
+        }
+        
+        /* LCD display panel */
+        .lcd-panel {
+            background: linear-gradient(to bottom, #0a0a0a, #151515);
+            border-radius: 8px;
+            padding: 10px;
+            margin-top: 15px;
+            border: 1px solid #333;
+            box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.8);
+        }
+        
+        .lcd-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            border-bottom: 1px solid #333;
+            padding-bottom: 5px;
+        }
+        
+        .lcd-title {
+            color: #4CAF50;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        
+        .lcd-info {
+            color: #999;
+            font-size: 10px;
+        }
+        
+        .input-group {
+            position: relative;
+            width: 100%;
+            margin: 10px 0;
+            display: flex;
+            align-items: center;
+        }
+        
+        #editInstructions {
+            width: 100%;
+            padding: 8px 35px 8px 10px;
+            border-radius: 4px;
+            border: 1px solid #444;
+            background-color: #1a1a1a;
+            color: #4CAF50;
+            font-size: 12px;
+        }
+        
+        #uploadDress {
+            position: absolute;
+            right: 5px;
+            width: 25px;
+            height: 25px;
+            opacity: 0;
+            cursor: pointer;
+        }
+        
+        .plus-icon {
+            position: absolute;
+            right: 10px;
+            width: 20px;
+            height: 20px;
+            background-color: #4CAF50;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 16px;
+            pointer-events: none;
+        }
+        
+        .preview-container {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+            gap: 10px;
+        }
+        
+        .preview-box {
+            flex: 1;
+            background: #1a1a1a;
+            border-radius: 4px;
+            padding: 5px;
+            border: 1px solid #333;
+            text-align: center;
+        }
+        
+        .preview-title {
+            color: #4CAF50;
+            font-size: 10px;
+            margin-bottom: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .preview-title::after {
+            content: '';
+            display: inline-block;
+            width: 6px;
+            height: 6px;
+            background: #4CAF50;
+            border-radius: 50%;
+        }
+        
+        #originalImage, #editedImage {
+            width: 100%;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 3px;
+            display: none;
+        }
+        
+        #dressPreview {
+            max-height: 50px;
+            max-width: 50px;
+            margin: 5px auto;
+            display: none;
+            border-radius: 3px;
+            border: 1px solid #4CAF50;
+            object-fit: cover;
+        }
+        
+        #textResponse {
+            color: #4CAF50;
+            font-size: 10px;
+            text-align: center;
+            margin: 5px 0;
+            height: 20px;
+            overflow: hidden;
+        }
+        
+        /* Processing modal */
+        #progressModal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        
+        .progress-container {
+            background: #000;
+            border-radius: 10px;
+            padding: 20px;
+            border: 1px solid #333;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        #progressCircle {
+            width: 80px;
+            height: 80px;
+            background: conic-gradient(#4CAF50 0% 0%, #222 0% 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            animation: shutter 1s infinite;
+            margin-bottom: 15px;
+        }
+        
+        @keyframes shutter {
+            0% { background: conic-gradient(#4CAF50 0% 10%, #222 10% 100%); }
+            25% { background: conic-gradient(#4CAF50 0% 25%, #222 25% 100%); }
+            50% { background: conic-gradient(#4CAF50 0% 50%, #222 50% 100%); }
+            75% { background: conic-gradient(#4CAF50 0% 75%, #222 75% 100%); }
+            100% { background: conic-gradient(#4CAF50 0% 100%, #222 100% 100%); }
+        }
+        
+        #progressCircle::before {
+            content: '';
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            background-color: #000;
+            border-radius: 50%;
+        }
+        
+        #progressText {
+            color: #4CAF50;
+            font-size: 12px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .processing-text {
+            color: #4CAF50;
+            font-size: 14px;
+            margin-top: 10px;
+            letter-spacing: 1px;
+        }
+    </style>
+</head>
+<body>
+    <div class="camera-body">
+        <!-- Camera top with branding and indicators -->
+        <div class="camera-top">
+            <div class="branding">
+                <div class="camera-logo">DORAEMON PRO</div>
+                <div class="version-number">v2.5</div>
+            </div>
+            <div class="indicators">
+                <div class="flash-indicator"></div>
+                <div class="battery-level"></div>
+            </div>
+        </div>
+        
+        <!-- Camera lens decoration -->
+        <div class="lens-housing">
+            <div class="lens"></div>
+        </div>
+        
+        <!-- Camera status display with dial -->
+        <div class="status-display">
+            <div class="exposure-dial"></div>
+            <div class="mode-display">DRESS-UP</div>
+        </div>
+        
+        <!-- Viewfinder/screen -->
+        <div class="viewfinder">
+            <video id="liveFeed" autoplay playsinline></video>
+            <div class="viewfinder-overlay"></div>
+            <div class="viewfinder-corners"><span></span></div>
+        </div>
+        
+        <!-- Main controls -->
+        <div class="control-panel">
+            <div class="control-left">
+                <select id="cameraSelect">
+                    <option value="user">FRONT</option>
+                    <option value="environment">BACK</option>
+                </select>
+                <button id="downloadButton" class="control-button">SAVE</button>
+            </div>
+            
+            <form id="editForm">
+                <div class="shutter-container">
+                    <div class="shutter-ring"></div>
+                    <button type="submit" class="shutter-button"></button>
+                </div>
+            </form>
+            
+            <div class="control-right">
+                <div class="control-button" id="modeButton">MODE</div>
+                <div class="control-button" id="resetButton">RESET</div>
+            </div>
+        </div>
+        
+        <!-- LCD panel with input and previews -->
+        <div class="lcd-panel">
+            <div class="lcd-header">
+                <div class="lcd-title">MAGIC DRESS-UP SYSTEM</div>
+                <div class="lcd-info" id="shotCounter">SHOTS: 0</div>
+            </div>
+            
+            <div class="input-group">
+                <input type="text" id="editInstructions" placeholder="e.g., wear a formal dress" required>
+                <input type="file" id="uploadDress" accept="image/*">
+                <div class="plus-icon">+</div>
+            </div>
+            
+            <img id="dressPreview" src="" alt="Dress">
+            <div id="textResponse"></div>
+            
+            <div class="preview-container">
+                <div class="preview-box">
+                    <div class="preview-title">ORIGINAL</div>
+                    <img id="originalImage" src="" alt="Original">
+                </div>
+                <div class="preview-box">
+                    <div class="preview-title">MAGIC</div>
+                    <img id="editedImage" src="" alt="Edited">
+                </div>
+            </div>
+        </div>
+        
+        <!-- Processing modal -->
+        <div id="progressModal">
+            <div class="progress-container">
+                <div id="progressCircle">
+                    <div id="progressText">0%</div>
+                </div>
+                <div class="processing-text">PROCESSING IMAGE</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const liveFeed = document.getElementById('liveFeed');
+        const cameraSelect = document.getElementById('cameraSelect');
+        const editForm = document.getElementById('editForm');
+        const editInstructions = document.getElementById('editInstructions');
+        const uploadDress = document.getElementById('uploadDress');
+        const dressPreview = document.getElementById('dressPreview');
+        const textResponse = document.getElementById('textResponse');
+        const originalImage = document.getElementById('originalImage');
+        const editedImage = document.getElementById('editedImage');
+        const downloadButton = document.getElementById('downloadButton');
+        const progressModal = document.getElementById('progressModal');
+        const progressText = document.getElementById('progressText');
+        const shotCounter = document.getElementById('shotCounter');
+        const resetButton = document.getElementById('resetButton');
+        const modeButton = document.getElementById('modeButton');
+    
+        let stream = null;
+        let originalImageData = null;
+        let editedImageData = null;
+        let dressImageData = null;
+        let shotsCount = 0;
+    
+        // Initialize webcam feed
+        async function startCamera(facingMode = 'user') {
+            try {
+                if (stream) {
+                    stream.getTracks().forEach(track => track.stop());
+                }
+                stream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: facingMode }
+                });
+                liveFeed.srcObject = stream;
+            } catch (error) {
+                console.error("Error accessing camera:", error);
+                alert("Could not access camera. Please ensure permissions are granted.");
+                textResponse.textContent = "CAMERA ERROR";
+            }
+        }
+    
+        // Switch camera
+        cameraSelect.addEventListener('change', () => {
+            const facingMode = cameraSelect.value;
+            startCamera(facingMode);
+        });
+    
+        // Handle dress image upload
+        uploadDress.addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = () => {
+                    dressImageData = reader.result;
+                    dressPreview.src = dressImageData;
+                    dressPreview.style.display = 'block';
+                    editInstructions.value = "wear this dress";
+                };
+                reader.readAsDataURL(file);
+            } else {
+                dressImageData = null;
+                dressPreview.src = '';
+                dressPreview.style.display = 'none';
+                editInstructions.value = '';
+            }
+        });
+    
+        // Reset function
+        resetButton.addEventListener('click', () => {
+            originalImage.style.display = 'none';
+            editedImage.style.display = 'none';
+            dressPreview.style.display = 'none';
+            editInstructions.value = '';
+            textResponse.textContent = 'RESET COMPLETE';
+            dressImageData = null;
+            originalImageData = null;
+            editedImageData = null;
+            
+            setTimeout(() => {
+                textResponse.textContent = '';
+            }, 2000);
+        });
+        
+        // Mode button (simulate changing modes)
+        modeButton.addEventListener('click', () => {
+            const modes = ['DRESS-UP', 'PORTRAIT', 'COSTUME', 'FANTASY'];
+            const current = document.querySelector('.mode-display').textContent;
+            const currentIndex = modes.indexOf(current);
+            const nextIndex = (currentIndex + 1) % modes.length;
+            document.querySelector('.mode-display').textContent = modes[nextIndex];
+            
+            textResponse.textContent = `MODE: ${modes[nextIndex]}`;
+            setTimeout(() => {
+                textResponse.textContent = '';
+            }, 2000);
+        });
+    
+        // Capture photo
+        function capturePhoto() {
+            const canvas = document.createElement('canvas');
+            canvas.width = liveFeed.videoWidth;
+            canvas.height = liveFeed.videoHeight;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(liveFeed, 0, 0, canvas.width, canvas.height);
+            originalImageData = canvas.toDataURL('image/jpeg', 0.8);
+            originalImage.src = originalImageData;
+            originalImage.style.display = 'block';
+            editedImage.src = '';
+            editedImage.style.display = 'none';
+            downloadButton.style.display = 'block';
+            
+            // Update shot counter
+            shotsCount++;
+            shotCounter.textContent = `SHOTS: ${shotsCount}`;
+            
+            // Flash effect
+            const flashEffect = document.createElement('div');
+            flashEffect.style.position = 'fixed';
+            flashEffect.style.top = '0';
+            flashEffect.style.left = '0';
+            flashEffect.style.width = '100%';
+            flashEffect.style.height = '100%';
+            flashEffect.style.backgroundColor = 'white';
+            flashEffect.style.opacity = '0.8';
+            flashEffect.style.zIndex = '999';
+            flashEffect.style.pointerEvents = 'none';
+            document.body.appendChild(flashEffect);
+            
+            const shutterSound = new Audio('data:audio/mp3;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU4Ljc2LjEwMAAAAAAAAAAAAAAA//tQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWGluZwAAAA8AAAACAAADQADAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMD////AwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwP///wAAADxMYXZjNTguMTM0LjEwMAAAAAAAAAAAAAAA/+NAxAAAAnabSYUAAAEkjKdG4ACAIAeGdx3MMYYxxhhhjDGBgYGAY//8uP/KOO8YY4w5uYGBgYKAgICAgICAgICAgICAgIAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAf/zQsQAAAIgAYEAAAABJITU9AAAgABkWKvM0kR/wAAAQbHyGgAAAAAA0GFwcgAH/8yxD+rWu1KTJDQIjsrSQNIgZCJJM8keqRBCRJI9UiCEf3d1WH//6s///////9VVYhEREQAQABAZGTgJAEgCVJ8oQN8oQN8oQN8oQN8oQN8oQN8oQN8oQN8oQN8oQN8oQN8oQN8oQN8oQN8oQN8oQN8oQN8oQN8oQN8oQN8oQN8oQN8oQN8oQN8oQN8oQN8oQN8oQN8oQN8oQN8oQN8oQN8oQN8oQN8oQN8oQN8oQN8oQN8oQN8oQN8oQN8oQN8oQN8oQN8oQN8oQN8oQN8oQN8oQN8oQN8oQN8o');
+            setTimeout(() => {
+                shutterSound.play().catch(e => console.log("Audio play error:", e));
+                document.body.removeChild(flashEffect);
+            }, 100);
+            
+            return originalImageData;
+        }
+    
+        // Process image with AI
+        async function processImage(instruction) {
+            if (!originalImageData) {
+                textResponse.textContent = "NO PHOTO CAPTURED";
+                return;
+            }
+    
+            progressModal.style.display = 'flex';
+            
+            // Simulate progress animation (keeping second code's style)
+            let progress = 0;
+            const interval = setInterval(() => {
+                progress += 5;
+                progressText.textContent = progress + '%';
+                if (progress >= 100) {
+                    clearInterval(interval);
+                }
+            }, 100);
+    
+            textResponse.textContent = '';
+    
+            // Note: Replace with your actual AI API key and endpoint
+            const apiKey = 'AIzaSyDzz7WKn72if6YM8dp-MEp85NZL7m5_7RE'; // Replace with your real API key
+            const endpoint = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp-image-generation:generateContent';
+    
+            try {
+                const requestBody = {
+                    contents: [{
+                        parts: [
+                            {
+                                text: `Edit this image to exactly follow the instruction: "${instruction}". Ensure the edit is safe for all audiences, with no harmful, sexual, or revealing content. For women, use full-cover dresses, avoiding mini or short dresses.`
+                            },
+                            {
+                                inlineData: {
+                                    mimeType: 'image/jpeg',
+                                    data: originalImageData.split(',')[1]
+                                }
+                            }
+                        ]
+                    }],
+                    generationConfig: {
+                        responseModalities: ['Text', 'Image']
+                    }
+                };
+    
+                // Add dress image if uploaded
+                if (dressImageData && instruction.toLowerCase().includes("wear this dress")) {
+                    requestBody.contents[0].parts.push({
+                        inlineData: {
+                            mimeType: 'image/jpeg',
+                            data: dressImageData.split(',')[1]
+                        }
+                    });
+                    requestBody.contents[0].parts[0].text += " Use the provided dress image to apply the dress to the person in the photo.";
+                }
+    
+                const response = await fetch(`${endpoint}?key=${apiKey}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(requestBody)
+                });
+    
+                const data = await response.json();
+                console.log("API Response:", data);
+    
+                if (!response.ok) {
+                    throw new Error(`API error: ${data.error?.message || response.statusText}`);
+                }
+    
+                if (data.candidates && data.candidates[0].content && data.candidates[0].content.parts) {
+                    const parts = data.candidates[0].content.parts;
+    
+                    for (const part of parts) {
+                        if (part.inlineData) {
+                            const imageData = part.inlineData.data;
+                            const mimeType = part.inlineData.mimeType || 'image/png';
+                            editedImageData = `data:${mimeType};base64,${imageData}`;
+                            editedImage.src = editedImageData;
+                            editedImage.style.display = 'block';
+                            downloadButton.style.display = 'block';
+                        } else if (part.text) {
+                            textResponse.textContent = part.text;
+                        }
+                    }
+                } else {
+                    throw new Error("Unexpected response structure from API.");
+                }
+            } catch (error) {
+                console.error("Error processing request:", error);
+                textResponse.textContent = `ERROR: ${error.message}`;
+                progressText.textContent = 'ERROR';
+            } finally {
+                setTimeout(() => {
+                    progressModal.style.display = 'none';
+                    progressText.textContent = '0%';
+                }, 1000);
+            }
+        }
+    
+        // Handle form submission
+        editForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const instruction = editInstructions.value.trim();
+            if (!instruction) {
+                textResponse.textContent = "ENTER INSTRUCTION";
+                return;
+            }
+            
+            // Capture photo first
+            capturePhoto();
+            
+            // Then process it
+            await processImage(instruction);
+        });
+    
+        // Download edited image
+        downloadButton.addEventListener('click', () => {
+            const imageToDownload = editedImageData || originalImageData;
+            if (imageToDownload) {
+                const link = document.createElement('a');
+                link.href = imageToDownload;
+                link.download = 'doraemon-camera-' + new Date().getTime() + '.jpg';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                
+                textResponse.textContent = "IMAGE SAVED";
+                setTimeout(() => {
+                    textResponse.textContent = "";
+                }, 2000);
+            }
+        });
+    
+        // Initialize
+        startCamera();
+    </script>
+</body>
+</html>
