@@ -869,7 +869,7 @@
             textResponse.textContent = '';
     
             // Note: Replace with your actual AI API key and endpoint
-            const apiKey = 'AIzaSyDzz7WKn72if6YM8dp-MEp85NZL7m5_7RE'; // Replace with your real API key
+            const AIkiChabi = 'AIzaSyDzz7WKn72if6YM8dp-MEp85NZL7m5_7RE'; // Replace with your real API key
             const endpoint = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp-image-generation:generateContent';
     
             try {
@@ -903,7 +903,7 @@
                     requestBody.contents[0].parts[0].text += " Use the provided dress image to apply the dress to the person in the photo.";
                 }
     
-                const response = await fetch(`${endpoint}?key=${apiKey}`, {
+                const response = await fetch(`${endpoint}?key=${AIkiChabi}`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
